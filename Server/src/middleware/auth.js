@@ -1,8 +1,14 @@
-const express = require('express');
-const router = express.Router();
-const { register, login } = require('../controllers/authController');
+const jwt = require('jsonwebtoken');
 
-router.post('/register', register);
-router.post('/login', login);
+module.exports = (req, res, next) => {
+  const token = req.header('Authorization')?.replace('Bearer ', '');
+  if (!token) return res.status(401).json({ error: 'No token provided' });
 
-module.exports = router;
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    req.user = decoded;
+    next();
+  } catch (err) {
+    res.status(401).json({ error: 'Invalid token' });
+  }
+};
